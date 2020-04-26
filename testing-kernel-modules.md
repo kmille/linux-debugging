@@ -1,68 +1,77 @@
-# Debug a Linux Kernel Module (easy)
+# How to debug a Linux Kernel Module (easy)
 
-## First test
+## A simple first test
 Try the Hello World exmpale from [cyberciti.biz](https://www.cyberciti.biz/tips/build-linux-kernel-module-against-installed-kernel-source-tree.html)  
 
-hello.c
+First install the kernel header files with `apt-get install kernel-headers-$(uname -r)`
+
+Content of `hello.c`:
+  
 ```c
 #include <linux/module.h>
 #include <linux/kernel.h>
 
 int init_module(void)
 {
-                printk(KERN_INFO "init_module() called\n");
-                        return 0;
+    printk(KERN_INFO "init_module() called\n");
+    return 0;
 }
 
 void cleanup_module(void)
 {
-                printk(KERN_INFO "cleanup_module() called\n");
+    printk(KERN_INFO "cleanup_module() called\n");
 }
 
 MODULE_LICENSE("GPL");
 ```
 
-Makefile
+
+Content of `Makefile`:
 
 ```Makefile
 obj-m := hello.o
 KDIR := /lib/modules/$(shell uname -r)/build
 PWD := $(shell pwd)
 default:
-        $(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules
+    $(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules
 clean:
-        rm -rf *.ko
-        rm -rf *.mod.c
-        rm -rf *mod.o
-        rm -rf *.o
+    rm -rf *.ko
+    rm -rf *.mod.c
+    rm -rf *mod.o
+    rm -rf *.o
 
 ```
 
+Build the module:  
 >make  
 >insmod hello.ko  
 >rmmod hello.ko  
 >dmesg:  
 >[  512.003876] init_module() called  
->[  512.003876] init_module() called  
+>[  512.009321] cleanup_module() called
+
 
 
 ## Debug our module
 for example `nf_log_ipv4` (used for -j TRACE in iptables)
 
-1. copy/download the source code
-    - download it from Github
+1. Get the source code
+    - download it from Github or
     - git clone https://github.com/torvalds/linux
     - obviously: code must match the kernel version
-2. use multiple print statements (also print variables)
+2. Use multiple print statements (also print variables)
     - `printk(KERN_INFO "nf_log_ipv4: Passed %s %d \n",__FUNCTION__,__LINE__);`
-3. in the Makefile replace `hello.o` with `nf_log_ipv4.o`
-4. `insmod nf_log_ipv4` 
+3. In the Makefile replace `hello.o` with `nf_log_ipv4.o`
+    - that's it. just use `make` to build it
+4. Load the module into the kernel with `insmod nf_log_ipv4` 
     - does not load dependencies => `symbol not found` error
-    - modprobe loads dependencies (needs a `modprobe` before)
-    - modprobe loads from /lib/modules/$(uname -r)/ ... (insmod from the current dir)
+    - modprobe automatically loads dependencies (needs a `modprobe` before)
+    - modprobe loads modules from /lib/modules/$(uname -r)/ ... (insmod from the current dir)
 
 ### Automate the process 
-I was testing why `iptables -j TRACE` didn't log something to dmesg. Solution: Debian buster uses nf_tables per default and you get the logs via `nft monitor trace`.  But using the old iptalbes (`/usr/sbin/iptables-legacy`) it logged to dmesg.  
+I was testing why `iptables -j TRACE` didn't log something to dmesg. Solution: Debian buster uses nf_tables per default and you get the logs via `nft monitor trace`.  If you use the old iptables (`/usr/sbin/iptables-legacy`) the messages will be logged to dmesg.  
+
+Content of `rebuild.sh`:
 
 ```bash
 root@buster:~/mod/hello-example# cat rebuild.sh 
@@ -89,7 +98,7 @@ $iptables -t raw -vnL
 ## Find the source code/which module to look at?
 It's very easy to grep the kernel code. Use `strace` to get the user space part:
 ```bash
-root@linbox ~ # strace -e network iptables -vnL
+root@linbox ~ strace -e network iptables -vnL
 socket(AF_INET, SOCK_RAW, IPPROTO_RAW)  = 4
 getsockopt(4, SOL_IP, IPT_SO_GET_INFO, "filter\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., [84]) = 0
 getsockopt(4, SOL_IP, IPT_SO_GET_ENTRIES, "filter\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., [2984]) = 0
@@ -144,11 +153,11 @@ Chain OUTPUT (policy ACCEPT 398K packets, 4393M bytes)
 root@linbox ~ #
 ```
 
-to get the kernel space code:  
+To get the kernel space code (for example for IPT_SO_GET_INFO):  
 
-- Google: `torvald/linux IPT_SO_GET_REVISION_MATCH`
-    - you will find https://github.com/torvalds/linux/blob/master/include/uapi/linux/netfilter_ipv4/ip_tables.h  
-- use https://elixir.bootlin.com/linux/latest/ident/IPT_SO_GET_REVISION_MATCH as search engine
+- Google: `torvald/linux IPT_SO_GET_INFO`
+    - you will find https://github.com/torvalds/linux/blob/master/net/ipv4/netfilter/ip_tables.c
+- use https://elixir.bootlin.com/linux/latest/ident/IPT_SO_GET_INFO as search engine
 
 
 
