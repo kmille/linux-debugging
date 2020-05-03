@@ -289,7 +289,7 @@ top
 
 CPU flame graph
 
-## Resources
+## Good Reeds
 - Linux Performance Analysis in 60s (video)
 	- http://www.brendangregg.com/blog/2015-12-03/linux-perf-60s-video.html
 	- https://netflixtechblog.com/linux-performance-analysis-in-60-000-milliseconds-accc10403c55
@@ -297,6 +297,14 @@ CPU flame graph
 	- https://www.slideshare.net/brendangregg/velocity-2015-linux-perf-tools
 	- http://www.brendangregg.com/Slides/Velocity2015_LinuxPerfTools.pdf
 
+- Networking
+    - https://blog.cloudflare.com/syn-packet-handling-in-the-wild/
+    - https://blog.nelhage.com/2010/08/write-yourself-an-strace-in-70-lines-of-code/
+    - https://veithen.io/2014/01/01/how-tcp-backlog-works-in-linux.html
+
+- else:
+    - https://veithen.io/2013/11/18/iowait-linux.html
+    - https://blog.heckel.io/2015/10/18/how-to-create-debian-package-and-debian-repository/
 
 todos
 Dieser Graph ist ganz nice
