@@ -26,7 +26,7 @@ on the jump server:
 on our local machine:  
 >ssh jump "tail -f -b +0 /tmp/packets.pcap" | wireshark -k -i -  
 
-### Finding traffic in tcpdump
+### Find your traffic in tcpdump
 use source ports (NAT does not change the port) for filtering  
 Explanation: for outgoing connections Linux uses a port out of `ip_local_port_range`  
 
@@ -38,6 +38,12 @@ This means: if we use a lower outgoing port we can easily find our packets
 >tcpdump -ni any portrange 2000-3000  
 >nc -s 192.168.10.70 -p 2000 -v localhost 8000  
 >curl --interface 192.168.10.70 --local-port 2001 -v localhost:8000  
+
+### Find the dropping firewall
+use mtr for a simple traceroute with a TCP SYN to 443 on top  
+shows you where the packet is dropped when there are multiple firewalls and you don't know which is dropping your SYNs  
+
+>mtr --tcp -P 443 server
 
 ### Useful tcpdump filter
 SYN only (someone trys to connect but the firewall drops => retransmission)
