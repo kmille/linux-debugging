@@ -1,5 +1,11 @@
 # Linux Debugging Cheat Sheet
-Troubleshooting, Performance Analysis
+state: not finished, but helpful enough to be published. Merge Requests welcome!
+
+This file contains some useful commands for linux troubleshooting, performance Analysis, ...
+
+There are additional files:
+- [How to build and debug linux kernel modules (easier than you think!)](testing-kernel-modules.md)
+- [Debugging with bpftrace (German only right now)](/bpftrace.md)
 
 
 
@@ -9,23 +15,29 @@ Troubleshooting, Performance Analysis
 ssh server 'tcpdump -ni any -s0 -U -w - udp port 53' | wireshark -k -i -
 
 ### Wireshark on remote host over jump server
+
+ssh -J jumpserver server 'tcpdump -ni any -s0 -U -w - udp port 53' | wireshark -k -i -
+
+### Wireshark on remote host over jump server (if the private key for the server is only on the jump host)
+
 on the jump server:  
 >ssh server 'tcpdump -ni any -s0 -U -w- udp port 53' > /tmp/packets.pcap  
 
-on our machine:  
+on our local machine:  
 >ssh jump "tail -f -b +0 /tmp/packets.pcap" | wireshark -k -i -  
 
 ### Finding traffic in tcpdump
 use source ports (NAT does not change the port) for filtering  
-for outgoing connections Linux uses a port out of `ip_local_port_range`  
+Explanation: for outgoing connections Linux uses a port out of `ip_local_port_range`  
+
 >kmille@linbox /proc% cat sys/net/ipv4/ip_local_port_range  
 >32768   60999  
 
 This means: if we use a lower outgoing port we can easily find our packets  
 
 >tcpdump -ni any portrange 2000-3000  
->nc -s 192.168.10.70 -4 -p 2000 -v localhost 8000  
->curl --interface 192.168.10.70 --local-port 2001 -4 -v localhost:8000  
+>nc -s 192.168.10.70 -p 2000 -v localhost 8000  
+>curl --interface 192.168.10.70 --local-port 2001 -v localhost:8000  
 
 ### Useful tcpdump filter
 SYN only (someone trys to connect but the firewall drops => retransmission)
@@ -35,7 +47,7 @@ Another way to find retransmissions: `sar -n ETCP 1` and check the `retrans/s` c
 To find which connection use  
 >watch -n 0.1 'ss -tn state syn-sent'  
 
-SYN and SYN-ACK (show new tcp connections)  
+SYN and SYN-ACK (show only newly established tcp connections)  
 >tcpdump -ni any 'tcp[tcpflags] == tcp-syn or tcp[13]=18'  
 
 SYN and RST (connect to a port which is closed)  
@@ -47,11 +59,11 @@ SYN and ICMP port unreachable (firewall rejects packet)
 SYN AND SYN-ACK AND RST AND ICMP port unreachable
 >tcpdump -ni any '(tcp[tcpflags] == tcp-syn or tcp[13]=18) or tcp[13] &amp; 4!=0 or icmp[0] = 3'  
 
-For outgoing connections use `tcpconnect` to get the process which is sending the packets. Or `ss tanp` or `netstat -tanp`.
+For outgoing connections use `tcpconnect` (of the bpf-tools) to get the process which is sending the packets. Or `ss tanp` or `netstat -tanp`.
 
 
 ### Debugging iptables
-#### Clear and check the counter (pkts bytes)
+#### Clear and check the counter (pkts/bytes)
 >iptables -Z INPUT  
 >iptables -Z INPUT 1  
 >watch -n 0.1 iptables -vnL INPUT  
@@ -65,7 +77,7 @@ For outgoing connections use `tcpconnect` to get the process which is sending th
 >wireshark -ni nflog:5  
 
 
-#### Trace the rules iptables applied for a package  
+#### Trace the iptables rules linux uses for a package  
 on older systems  
 >modprobe ipt_LOG  
 >echo ipt_LOG >/proc/sys/net/netfilter/nf_log/2  
@@ -92,8 +104,7 @@ check `dmesg` for some output. If there is no output:
 >nf_tables             143360  0  
 >nfnetlink              16384  1 nf_tables  
 
-
-use `nft monitor trace` instead of dmesg  
+use `nft monitor trace` instead of dmesg  (on systems using netfilter and not nftables)
 other fix: you can use `/usr/sbin/iptables-legacy` instead of the new default `/usr/sbin/iptables-nft`
 
 <details>
@@ -133,7 +144,7 @@ clear tracing
 ---
 
 
-### ~~Fighting~~ Debugging IPsec
+### ~~Fighting~~ Debugging IPsec on linux (racoon + setkey)
 [Why IPsec is hard to debug:](https://libreswan.org/wiki/Linux_IPsec_Summit_2018_wishlist#Fixup_XFRM_and_tcpdump)
 >The fact that you see some plaintext, but not all plaintext, is the most confusing aspect of IPsec to system administrators, who now believe hey are leaking plaintext. 
 
@@ -151,8 +162,8 @@ The better you know how a system works the better you can debug it. So before de
 	- [ ] Are they both talking to each other? We had the problem: We speak IKEv1. They speak IKEv2. Our software was too old to recognize IKEv2
 - [ ] Are both using the same proposals? Use Wireshark for dissecting packets and compare parameters.
 - [ ] Any errors in `tail -f /var/log/syslog`?
-- [ ] Is the secret the same on both endpoints?
-- [ ] We had problems using sha2 (the generated keys for phase2 where truncated at the wrong lenth) - use sha1 or sha512
+- [ ] Is the secret the same on both endpoints (prevent special characters on really old systems)?
+- [ ] We had problems using sha2 (the generated keys for phase2 where truncated at the wrong length) - use sha1 or sha512
 
 You think it works?  
 
@@ -282,76 +293,29 @@ Retransmits are a sign of a network or server issue; it may be an unreliable net
 
 
 
-top
-
-
-
-CPU flame graph
-
 ## Good Reeds
+- Brendan Gregg is great. Read and watch everything you catch http://www.brendangregg.com/
 - Linux Performance Analysis in 60s (video)
 	- http://www.brendangregg.com/blog/2015-12-03/linux-perf-60s-video.html
 	- https://netflixtechblog.com/linux-performance-analysis-in-60-000-milliseconds-accc10403c55
 	- https://www.youtube.com/watch?v=FJW8nGV4jxY&list=PLhhdIMVi0o5RNrf8E2dUijvGpqKLB9TCR
 	- https://www.slideshare.net/brendangregg/velocity-2015-linux-perf-tools
 	- http://www.brendangregg.com/Slides/Velocity2015_LinuxPerfTools.pdf
-
 - Networking
     - https://blog.cloudflare.com/syn-packet-handling-in-the-wild/
     - https://blog.nelhage.com/2010/08/write-yourself-an-strace-in-70-lines-of-code/
     - https://veithen.io/2014/01/01/how-tcp-backlog-works-in-linux.html
-
 - else:
     - https://veithen.io/2013/11/18/iowait-linux.html
     - https://blog.heckel.io/2015/10/18/how-to-create-debian-package-and-debian-repository/
 
-todos
-Dieser Graph ist ganz nice
-Was ist in was fürm Paket
-
-Use method
-Workload	Characteriza<on	Method (was den Kunden fragen) - http://www.brendangregg.com/Slides/Velocity2015_LinuxPerfTools.pdf 15/14x
-
-memstat: voher #CPUs rausfinden
-
-df -h
-check: remote disks?
-
-M13: load?
-
-Was sagt er zu remote storage?
-
-todo: check log files
-	- welche sind offen: lsof/opensnoop
 
 
-nicstat -z 1 -x
-	- geht was an lo?
-	- kann auch bits anstatt bytes
-	Was sind die ERROR Werte
-Paket: nicstat
+### Speaking with a PHP-FPM socket via command line
 
-
-
-
-
-
-Google: idelnde TPC Verbindung?
-
-
-was lief nicht so dolle:
-mehr auf logfiles achten
-vmstat -w => falsche Spalate gesehen
-Nicht auf die Events vom Monitoring geachtet
-
-Linux process states => S was heißt das genau
-	bremen-web3: php70fpm[bremen] max children nearly reached mal genauer anschaen. Was bedeutet das? wie wirds gemonitort?
-
-
-​	
-​	
-	https://www.dynatrace.com/news/blog/7-minute-workout-does-your-apache-web-server-need-love/
-	https://serverfault.com/questions/516373/what-is-the-meaning-of-ah00485-scoreboard-is-full-not-at-maxrequestworkers
+- https://www.dynatrace.com/news/blog/7-minute-workout-does-your-apache-web-server-need-love/
+- https://serverfault.com/questions/516373/what-is-the-meaning-of-ah00485-scoreboard-is-full-not-at-maxrequestworkers
+- https://easyengine.io/tutorials/php/fpm-status-page/
 
 ```bash
 #SCRIPT_NAME=/status SCRIPT_FILENAME=/status REQUEST_METHOD=GET cgi-fcgi -bind -connect /var/run/php/php7.2-fpm.sock
@@ -359,5 +323,4 @@ export SCRIPT_NAME=/status
 export SCRIPT_FILENAME=/status 
 export REQUEST_METHOD=GET 
 cgi-fcgi -bind -connect /var/run/php/php7.2-fpm.sock
-https://easyengine.io/tutorials/php/fpm-status-page/
 ```
