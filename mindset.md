@@ -4,7 +4,7 @@
 
 - There are no hard problems. There is just lack of information about how the system works
 - Remember that the bug is happening for a logical reason
-- Be unreasonable confident in your ability to fix the bug
+- Be unreasonably confident in your ability to fix the bug
 - The harder the bugs you solve the better you will be
 - Every error is an opportunity to learn
 

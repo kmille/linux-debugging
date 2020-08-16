@@ -12,7 +12,7 @@ This repo contains some useful commands and ideas for linux troubleshooting, per
 - [PHP](/misc.md)
 
 
-## Good Reeds
+## Good Reads
 - Brendan Gregg is great. Read and watch everything you catch http://www.brendangregg.com/
 - Linux Performance Analysis in 60s (video)
 	- http://www.brendangregg.com/blog/2015-12-03/linux-perf-60s-video.html
