@@ -8,8 +8,6 @@
 - The harder the bugs you solve the better you will be
 - Every error is an opportunity to learn
 
-
-
 ### Finding the root cause of the problem
 
 - Try to get the issue reproducible
@@ -22,8 +20,6 @@
 - Isolate the problem
     - Remove some parts of the system and try to reproduce the bug
     - Vary one thing at a time while keeping all other things constant
-
-
 
 ### Issue still not fixed? Checklist
 
@@ -51,7 +47,6 @@
     - [ ] Is the customer logged in on the system? What is he doing (check bash_history and `ps -u`)
 
 
-
 ### After some time of debugging
 
 - Force yourself to express the problem in an easy and comprehensible way that a random teddy bear understands it
@@ -65,16 +60,13 @@
     - Fix the problem by not fixing the problem: use a different approach to solve your actual problem
 
 
-
 ### If you copy/paste from Stackoverflow
 
 - Don't copy/paste from Stackoverflow without understanding the actual problem
 - Don't copy/paste from Stackoverflow without understanding the proposed solution
-
     - If you don't have time for it right now => make a note about it (even after solving it)
     - If you don't know what the command/tool is doing read the man page [(https://explainshell.com)](https://explainshell.com/)
     - Don't copy/paste commands/code. Type it on your own
-
     
 
 ### After solving the issue
@@ -82,7 +74,3 @@
 2) What have you learned?
 2) What were the wrong assumptions?
 3) How can you solve a similar problem in future even faster?
-
-
-
-### 
