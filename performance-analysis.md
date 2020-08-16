@@ -1,4 +1,5 @@
 ## Performance Analysis
+This is based (copied) from Brendan Gregg!
 
 uptime
 - load sum averages over 1 minute, 5 minute, and 15 minute
