@@ -3,7 +3,7 @@ state: not finished, but helpful enough to be published. Merge Requests welcome!
 
 This repo contains some useful commands and ideas for linux troubleshooting, performance Analysis, ...
 
-- [How to solve hard (technical) problems?](/mindset.md)
+- [How to solve hard (technical) problems](/mindset.md)
 - [Network debugging](/debugging-networking.md)
 - [~~Fighting~~ Debugging IPsec on linux (racoon + setkey)](/debugging-ipsec-racoon.md)
 - [Performance Analysis](/performance-analysis.md)
