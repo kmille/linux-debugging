@@ -1,19 +1,19 @@
 # Linux Debugging Cheat Sheet
 state: not finished, but helpful enough to be published. Merge Requests welcome!
 
-This repo contains some useful commands and ideas for linux troubleshooting, performance Analysis, ...
+This repo contains some useful commands and ideas for linux troubleshooting, performance analysis, ...
 
 - [How to solve hard (technical) problems](/mindset.md)
 - [Network debugging](/debugging-networking.md)
 - [~~Fighting~~ Debugging IPsec on linux (racoon + setkey)](/debugging-ipsec-racoon.md)
 - [Performance Analysis](/performance-analysis.md)
 - [How to build and debug linux kernel modules (easier than you think!)](testing-kernel-modules.md)
-- [Debugging with bpftrace (German only right now)](/bpftrace.md)
-- [PHP](/misc.md)
+- [Debugging with bpftrace (german only right now)](/bpftrace.md)
+- [Some PHP stuff](/misc.md)
 
 
 ## Good Reads
-- Brendan Gregg is great. Read and watch everything you catch http://www.brendangregg.com/
+- Brendan Gregg is great. Read and watch everything you catch: http://www.brendangregg.com/
 - Linux Performance Analysis in 60s (video)
 	- http://www.brendangregg.com/blog/2015-12-03/linux-perf-60s-video.html
 	- https://netflixtechblog.com/linux-performance-analysis-in-60-000-milliseconds-accc10403c55

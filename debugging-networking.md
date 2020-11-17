@@ -25,11 +25,13 @@ Explanation: for outgoing connections Linux uses a port out of `ip_local_port_ra
 This means: if we use a lower outgoing port we can easily find our packets  
 
 >tcpdump -ni any portrange 2000-3000  
+>nc -p 2000 -v localhost 8000  
 >nc -s 192.168.10.70 -p 2000 -v localhost 8000  
+>curl --local-port 2001 -v localhost:8000  
 >curl --interface 192.168.10.70 --local-port 2001 -v localhost:8000  
 
 ### Find the dropping firewall
-use mtr for a simple traceroute with a TCP SYN to 443 on top  
+use `mtr` for a simple traceroute with a TCP SYN to 443 on top  
 shows you where the packet is dropped when there are multiple firewalls and you don't know which is dropping your SYNs  
 
 >mtr --tcp -P 443 server
@@ -39,8 +41,9 @@ SYN only (someone trys to connect but the firewall drops => retransmission)
 >tcpdump -ni any 'tcp[tcpflags] == tcp-syn'
 
 Another way to find retransmissions: `sar -n ETCP 1` and check the `retrans/s` column  
-To find which connection use  
->watch -n 0.1 'ss -tn state syn-sent'  
+To find which connection/application use  
+
+>watch -n 0.1 'ss -tpn state syn-sent'  
 
 SYN and SYN-ACK (show only newly established tcp connections)  
 >tcpdump -ni any 'tcp[tcpflags] == tcp-syn or tcp[13]=18'  
@@ -54,7 +57,7 @@ SYN and ICMP port unreachable (firewall rejects packet)
 SYN AND SYN-ACK AND RST AND ICMP port unreachable
 >tcpdump -ni any '(tcp[tcpflags] == tcp-syn or tcp[13]=18) or tcp[13] &amp; 4!=0 or icmp[0] = 3'  
 
-For outgoing connections use `tcpconnect` (of the bpf-tools) to get the process which is sending the packets. Or `ss tanp` or `netstat -tanp`.
+For outgoing connections use [tcpconnect](https://github.com/iovisor/bcc/blob/master/tools/tcpconnect_example.txt)to get the process which is sending the packets. Or `ss -tanp` or `netstat -tanp`.
 
 
 ### Debugging iptables
@@ -122,7 +125,7 @@ filter:OUTPUT:policy:2  IN=        OUT=wlp3s0  SRC=192.168.10.70                
 nat:POSTROUTING:rule:1  IN=        OUT=wlp3s0  SRC=192.168.10.70                              DST=193.99.144.80  LEN=84             PROTO=ICMP  TYPE=8  CODE=0  ID=13
 filter:INPUT:rule:3     IN=wlp3s0  OUT=        MAC=00:00:00:00:00:00:00:00:00:00:00:00:00:00  SRC=193.99.144.80  DST=192.168.10.70  PROTO=ICMP  TYPE=0  CODE=0  ID=13
 
-My mac adresses is redacted on purpose.
+My mac addresses is redacted on purpose.
 </pre>
 </details>
 

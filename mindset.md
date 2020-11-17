@@ -54,10 +54,10 @@
 - Try to understand what happens. Not: endless trial and error
     - Is there documentation that can help you understanding the system
     - Talk to other people knowing the system better than you
-- Take a break (go for a walk, do some exercises, take a deep breath, drink some water)
-- Step back: What's  the problem? What's the reason for the problem? What's the actual goal you are trying to achieve?
+- Take a break (go for a walk, do some exercises, take a deep breath, drink some water, eat some fruits)
+- Step back: What's the problem? What's the reason for the problem? What's the actual goal you are trying to achieve?
 - You don't have time and stuck on some unrelated details?
-    - Fix the problem by not fixing the problem: use a different approach to solve your actual problem
+    - Use a different approach to solve your actual problem
 
 
 ### If you copy/paste from Stackoverflow
