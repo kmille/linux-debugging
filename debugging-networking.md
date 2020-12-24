@@ -13,7 +13,7 @@ on the jump server:
 >ssh server 'tcpdump -ni any -s0 -U -w- udp port 53' > /tmp/packets.pcap  
 
 on our local machine:  
->ssh jump "tail -f -b +0 /tmp/packets.pcap" | wireshark -k -i -  
+>ssh jump "tail -f -c +0 /tmp/packets.pcap" | wireshark -k -i -  
 
 ### Find your traffic in tcpdump
 use source ports (NAT does not change the port) for filtering  
