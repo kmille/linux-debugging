@@ -8,7 +8,7 @@ This repo contains some useful commands and ideas for linux troubleshooting, per
 - [~~Fighting~~ Debugging IPsec on linux (racoon + setkey)](/debugging-ipsec-racoon.md)
 - [Performance Analysis](/performance-analysis.md)
 - [How to build and debug linux kernel modules (easier than you think!)](testing-kernel-modules.md)
-- [Debugging with bpftrace (german only right now)](/bpftrace.md)
+- [How to use bpftrace](/bpftrace.md)
 - [Some PHP stuff](/misc.md)
 
 
@@ -24,6 +24,8 @@ This repo contains some useful commands and ideas for linux troubleshooting, per
     - https://blog.cloudflare.com/syn-packet-handling-in-the-wild/
     - https://blog.nelhage.com/2010/08/write-yourself-an-strace-in-70-lines-of-code/
     - https://veithen.io/2014/01/01/how-tcp-backlog-works-in-linux.html
+- eBPF
+    - https://blog.pixielabs.ai/ebpf-http-tracing/
 - else:
     - https://veithen.io/2013/11/18/iowait-linux.html
     - https://blog.heckel.io/2015/10/18/how-to-create-debian-package-and-debian-repository/

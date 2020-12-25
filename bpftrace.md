@@ -1,36 +1,36 @@
-# bpftrace
+# How to use bpftrace 
 
-Wir können beliebige Kernel und Userspace-Funktionen tracen
+We can trace arbitrary kernel and userspace functions.
 
+## Which kernel functions trace?
 
+`bpftrace -l | grep kprobe`
 
-## Welche Funktionen gibts im Kernel, die wir tracen können?
+Functions, the kernel knows right now: 
 
-bpftrace -l | grep kprobe
+`root@buster:/sys/kernel/debug/tracing# cat available_filter_functions `
 
-Funktionen, die der Kernel gerade kennt:
+We have the `ac`  kernel module loaded:
 
-root@buster:/sys/kernel/debug/tracing# cat available_filter_functions 
+`root@buster:/sys/kernel/debug/tracing# lsmod | grep ac`
+`ac   16384  0`
 
+Functions of the kernel module `ac`:
 
-
-root@buster:/sys/kernel/debug/tracing# lsmod | grep ac
-ac                     16384  0
-
-root@buster:/sys/kernel/debug/tracing# cat available_filter_functions | grep '\[ac\]'
+`root@buster:/sys/kernel/debug/tracing# cat available_filter_functions | grep '\[ac\]'
 acpi_ac_get_state [ac]
 acpi_ac_resume [ac]
 acpi_ac_notify [ac]
 acpi_ac_remove [ac]
 acpi_ac_battery_notify [ac]
 get_ac_property [ac]
-acpi_ac_add [ac]
+acpi_ac_add [ac]`
 
 
 
-## Beispiel
+## Example
 
-userspace
+1) Let's use `strace` to find some interesting system calls.
 
 ```bash
 root@buster:/home/vagrant# strace -e network iptables-legacy -nL
@@ -48,6 +48,8 @@ target     prot opt source               destination
 +++ exited with 0 +++
 ```
 
+2) Let's find out which kernel we use. Get the kernel source code and checkout the right version.
+
 ```bash
 root@buster:~/mod/linux# uname -a
 Linux buster 4.19.0-8-amd64 #1 SMP Debian 4.19.98-1 (2020-01-26) x86_64 GNU/Linux
@@ -56,6 +58,8 @@ root@buster:~/mod/linux# git status
 HEAD detached at v4.19-rc8
 nothing to commit, working tree clean
 ```
+
+3) grep for some function names, constants or variable names
 
 ```c
 root@buster:~/mod/linux# rg IPT_SO_GET_INFO
@@ -76,11 +80,7 @@ include/uapi/linux/netfilter_ipv4/ip_tables.h
 
 ```
 
-net/ipv4/netfilter/ip_tables.c looks promising:
-
-two functions: `compat_do_ipt_get_ctl` and `do_ipt_get_ctl`
-
-
+In `net/ipv4/netfilter/ip_tables.c looks promising` there are two interesting functions:  `compat_do_ipt_get_ctl` and `do_ipt_get_ctl`. Let's find out if they are called.
 
 ```bash
 root@buster:~# bpftrace -e 'kprobe:do_ipt_get_ctl { printf("function was called!\n"); }'
@@ -89,11 +89,13 @@ function was called!
 function was called!
 ```
 
-if we want more details:
+Let's get some more details. This is how the signature of the `compat_do_ipt_get_ctl` function looks like:
 
 ```c
 static int compat_do_ipt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
 ```
+
+Let's write some code.
 
 ```c
 #include <net/sock.h>
@@ -102,22 +104,24 @@ kprobe:do_ipt_get_ctl
 {
     printf("called by %s (pid: %d). and: %d\n", comm, pid, ((sock *)arg0)->__sk_common.skc_family);
 }
-//todo: warum genau das includen manch andere Sachen aber nicht? einfach schauen ob ers erkennt?
-// den Weg über __sk_common hab ich mir von dem Beispiel aus lwn rauskopiert
 ```
+
+And execute it.
 
 ```c
 root@buster:~# bpftrace mypbraceprogram.bpf
 /bpftrace/include/stdarg.h:52:1: warning: null character ignored [-Wnull-character]       
-/lib/modules/4.19.0-8-amd64/source/arch/x86/include/asm/bitops.h:209:2: error: 'asm goto' constructs are not supported yet                                                           
-/lib/modules/4.19.0-8-amd64/source/arch/x86/include/asm/bitops.h:256:2: error: 'asm goto' constructs are not supported yet                                                           
-/lib/modules/4.19.0-8-amd64/source/arch/x86/include/asm/bitops.h:310:2: error: 'asm goto' constructs are not supported yet                                                           
+/lib/modules/4.19.0-8-amd64/source/arch/x86/include/asm/bitops.h:209:2: error: 'asm goto' constructs are not supported yet
+/lib/modules/4.19.0-8-amd64/source/arch/x86/include/asm/bitops.h:256:2: error: 'asm goto' constructs are not supported yet
+/lib/modules/4.19.0-8-amd64/source/arch/x86/include/asm/bitops.h:310:2: error: 'asm goto' constructs are not supported yet
 /lib/modules/4.19.0-8-amd64/source/arch/x86/include/asm/jump_label.h:23:2: error: 'asm goto' constructs are not supported yet
 /lib/modules/4.19.0-8-amd64/source/arch/x86/include/asm/signal.h:24:2: note: array 'sig' declared here
 Attaching 1 probe...
 called by iptables-legacy (pid: 2981). and: 2
 called by iptables-legacy (pid: 2981). and: 2
 ```
+
+What does the `2` mean?
 
 ```c
 /usr/src/linux-headers-4.19.0-8-common/include/linux/socket.h
@@ -130,15 +134,13 @@ called by iptables-legacy (pid: 2981). and: 2
 166 #define AF_IPX      4   /* Novell IPX           */
 ```
 
-```bash
+So it's just IPv4. Some explanation of `((sock *)arg0)->__sk_common.skc_family)`. The first parameter of `compat_do_ipt_get_ctl` is a pointer to a `socket`.  A `socket` has another data structure of type `sock_common` called `__sk_common`. And  ``__sk_common`` has the attribute `skc_family` . You can (have to) find it out by grepping through the code.
+
+```c
 root@buster:/usr/src/linux-headers-4.19.0-8-common/include# rg '^struct sock \{'
 net/sock.h
 327:struct sock {
-```
-
-```c
-// alles in net/sock.h
-
+    ....
 239 /**
  240   * struct sock - network layer representation of sockets
  241   * @__sk_common: shared layout with inet_timewait_sock
@@ -159,10 +161,9 @@ net/sock.h
  331      */
  332     struct sock_common  __sk_common;
  333 #define sk_node         __sk_common.skc_node
+ 
      ...
-
-     
-      122 /**
+ 
  123  *  struct sock_common - minimal network layer representation of sockets
  124  *  @skc_daddr: Foreign IPv4 addr
  125  *  @skc_rcv_saddr: Bound local IPv4 addr
@@ -170,19 +171,9 @@ net/sock.h
  127  *  @skc_u16hashes: two u16 hash values used by UDP lookup tables
  128  *  @skc_dport: placeholder for inet_dport/tw_dport
  129  *  @skc_num: placeholder for inet_num/tw_num
- 130  *  @skc_family: network address family
+ 130  *  @skc_family: network address family                          <----- here it is
  131  *  @skc_state: Connection state
- 132  *  @skc_reuse: %SO_REUSEADDR setting
- 133  *  @skc_reuseport: %SO_REUSEPORT setting
- 134  *  @skc_bound_dev_if: bound device index if != 0
- 135  *  @skc_bind_node: bind hash linkage for various protocol lookup tables
- 136  *  @skc_portaddr_node: second hash linkage for UDP/UDP-Lite protocol
- 137  *  @skc_prot: protocol handlers inside a network family
- 138  *  @skc_net: reference to the network namespace of this socket
- 139  *  @skc_node: main hash linkage for various protocol lookup tables
- 140  *  @skc_nulls_node: main hash linkage for TCP/UDP/UDP-Lite protocol
- 141  *  @skc_tx_queue_mapping: tx queue number for this connection
- 142  *  @skc_rx_queue_mapping: rx queue number for this connection
+...
  143  *  @skc_flags: place holder for sk_flags
  144  *      %SO_LINGER (l_onoff), %SO_BROADCAST, %SO_KEEPALIVE,
  145  *      %SO_OOBINLINE settings, %SO_TIMESTAMPING settings
@@ -198,21 +189,14 @@ net/sock.h
      
 ```
 
-# anderes Beispiel
-
-hat funktioniert. nur wie oben gabs Warungung .. . ka woher
-
-bpftrace -e 'kprobe:vfs_open { printf("open path: %s\n", str(((path *)arg0)->dentry->d_name.name)); }'
+Another example: `bpftrace -e 'kprobe:vfs_open { printf("open path: %s\n", str(((path *)arg0)->dentry->d_name.name)); }'`
 
 
 
-# Projektidee
-
-- TCP-Verbindungen, die schon länger als x Sekunden bestehen
-
-## Resourcen
+# Useful links
 
 - https://www.joyfulbikeshedding.com/blog/2019-01-31-full-system-dynamic-tracing-on-linux-using-ebpf-and-bpftrace.html
+
 - https://lwn.net/Articles/793749/
 
 - http://www.brendangregg.com/BPF/bpftrace-cheat-sheet.html
