@@ -6,6 +6,7 @@ This repo contains some useful commands and ideas for linux troubleshooting, per
 - [How to solve hard (technical) problems](/mindset.md)
 - [Network debugging](/debugging-networking.md)
 - [~~Fighting~~ Debugging IPsec on linux (racoon + setkey)](/debugging-ipsec-racoon.md)
+- [How to debug a core dump](/coredump-analysis.md)
 - [Performance Analysis](/performance-analysis.md)
 - [How to build and debug linux kernel modules (easier than you think!)](testing-kernel-modules.md)
 - [How to use bpftrace](/bpftrace.md)
