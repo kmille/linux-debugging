@@ -128,18 +128,18 @@ Now our gdb shows us the line in which the error occurs (./rxvtperl.xs:379).
 (gdb) 
 ```
 
-I use  `  auto-load safe-path /`  in my global gdbinit. It allows me to use .gdbinit of the current working directory.
+I use  `  auto-load safe-path /`  in my global ~/.gdbinit. It allows me to use .gdbinit of the current working directory.
 
 ```bash 
 kmille@linbox: cat ~/.gdbinit                                                    
 set auto-load safe-path /
 ```
 
-The segfault happens if `getenv ` is called. Let's use `man 3 getenv` to get the parameters of it.
+The segfault happens if `getenv` is called. Let's use `man 3 getenv` to get the parameters of it.
 
        char *getenv(const char *name);
 
-We can use `man syscall` to find out where the arguments are stored. We are interested in the first (and only argument). We can find it the `rdi` register.
+We can use `man syscall` to find out where the arguments are stored. We are interested in the first (and only argument). We can find it in the `rdi` register.
 
     Arch/ABI    Instruction           System  Ret  Ret  Error    Notes
     x86-64      syscall               rax     rax  rdx  -        5
