@@ -5,6 +5,7 @@ This repo contains some useful commands and ideas for linux troubleshooting, per
 
 - [How to solve hard (technical) problems](/mindset.md)
 - [Network debugging](/debugging-networking.md)
+- [Learning & debugging firejail](/debugging-firejail.md)
 - [~~Fighting~~ Debugging IPsec on linux (racoon + setkey)](/debugging-ipsec-racoon.md)
 - [How to debug a core dump](/coredump-analysis.md)
 - [Performance Analysis](/performance-analysis.md)
