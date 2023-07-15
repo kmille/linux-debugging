@@ -59,6 +59,20 @@ SYN AND SYN-ACK AND RST AND ICMP port unreachable
 
 For outgoing connections use [tcpconnect](https://github.com/iovisor/bcc/blob/master/tools/tcpconnect_example.txt)to get the process which is sending the packets. Or `ss -tanp` or `netstat -tanp`.
 
+### Debugging Docker network issues
+Use `docker run --rm --network=container:<name of a running contianer> -it nicolaka/netshoot` to get a shell with debugging tools in the network namespace of the container, that makes problem. You're not only in the same network as the target container, it also has access to the same ip. So you can just run tcpdump to get the incoming requests. I use these aliases in `~/.bashrc`.
+
+>dg() { # docker grep
+>    docker ps --format "{{ .Names }}" | rg $1
+>}
+>
+>de() { #  docker exec
+>    docker exec -it $1 bash
+>}
+>den() { #docker exec network (run debug container with network of $1 container
+>    docker run --rm --network=container:$1 -it nicolaka/netshoot
+>}
+
 
 ### Debugging iptables
 #### Clear and check the counter (pkts/bytes)
