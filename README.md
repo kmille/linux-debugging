@@ -1,6 +1,8 @@
 # Linux Debugging Cheat Sheet
 state: not finished, but helpful enough to be published. Merge Requests welcome!
 
+UPDATE: for the current version, check https://debugging.works/blog/network-debugging/.
+
 This repo contains some useful commands and ideas for linux troubleshooting, performance analysis, ...
 
 - [How to solve hard (technical) problems](/mindset.md)
